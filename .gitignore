@@ -1,0 +1,9 @@
+# Node
+node_modules/
+dist/
+
+# Vite local env
+.env.local
+
+# System
+.DS_Store
