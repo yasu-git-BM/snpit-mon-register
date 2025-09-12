@@ -1,13 +1,15 @@
 // mon_register/src/main.jsx
 
-// ① ビルド時に環境変数が正しく渡っているか確認するログ
-console.log('API_BASE=', import.meta.env.VITE_API_BASE);
+// 環境変数がビルド時に正しく渡っているか確認
+const API_BASE = import.meta.env.VITE_API_BASE
+  || 'https://snpit-line-bot.onrender.com';
+console.log('API_BASE=', API_BASE);
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { ThemeProvider } from 'styled-components';
 import App from './App.jsx';
 import './index.css';
-import { ThemeProvider } from 'styled-components';
 import theme from './styles/theme.js';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
