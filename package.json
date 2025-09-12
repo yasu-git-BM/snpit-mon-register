@@ -2,15 +2,16 @@
   "name": "snpit-mon-register",
   "version": "1.0.0",
   "scripts": {
-    "dev":   "vite",
+    "dev": "vite",
     "build": "vite build"
   },
   "dependencies": {
     "react": "^18.x",
-    "react-dom": "^18.x"
+    "react-dom": "^18.x",
+    "styled-components": "^6.1.19"
   },
   "devDependencies": {
-    "vite": "^4.x",
-    "@vitejs/plugin-react": "^4.x"
+    "@vitejs/plugin-react": "^4.x",
+    "vite": "^4.x"
   }
 }
