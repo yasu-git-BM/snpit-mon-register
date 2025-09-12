@@ -1,8 +1,19 @@
+// mon_register/src/main.jsx
+
+// ① ビルド時に環境変数が正しく渡っているか確認するログ
+console.log('API_BASE=', import.meta.env.VITE_API_BASE);
+
 import React from 'react';
-import { createRoot } from 'react-dom/client';
+import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
+import './index.css';
+import { ThemeProvider } from 'styled-components';
+import theme from './styles/theme.js';
 
-console.log('🌱 main.jsx loaded');
-
-const container = document.getElementById('root');
-createRoot(container).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <ThemeProvider theme={theme}>
+      <App />
+    </ThemeProvider>
+  </React.StrictMode>
+);
