@@ -1,4 +1,6 @@
 // mon_register/src/main.jsx
+console.log('🚀 ENTRY file loaded');
+console.log('API_BASE=', import.meta.env.VITE_API_BASE);
 
 // 環境変数がビルド時に正しく渡っているか確認
 const API_BASE = import.meta.env.VITE_API_BASE
