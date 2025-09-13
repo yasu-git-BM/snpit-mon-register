@@ -8,7 +8,7 @@ export async function fetchConfig() {
   return res.json();
 }
 
-// ステータス取得
+// ステータス取得（POST /api/status）
 export async function fetchStatus() {
   const res = await fetch(`${API_BASE}/api/status`, {
     method:  'POST',
@@ -18,7 +18,7 @@ export async function fetchStatus() {
   return res.json();
 }
 
-// ステータス更新（更新後データを返す）
+// ステータス更新（POST /api/update/status）→ 更新後データ返却
 export async function updateStatus(newData) {
   const res = await fetch(`${API_BASE}/api/update/status`, {
     method:  'POST',
