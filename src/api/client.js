@@ -1,7 +1,5 @@
-// mon_register/src/api/client.js
-
-export const API_BASE = import.meta.env.VITE_API_BASE
-  || 'https://snpit-line-bot.onrender.com';
+// src/api/client.js
+export const API_BASE = import.meta.env.VITE_API_BASE;
 
 export async function fetchConfig() {
   const url = `${API_BASE}/config.json`;

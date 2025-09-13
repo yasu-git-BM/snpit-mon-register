@@ -1,15 +1,12 @@
-// mon_register/src/main.jsx
-
-// ① Service Worker を強制解除して最新バンドルを確実に取得
+// src/main.jsx
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(reg => reg.unregister());
-  });
+  navigator.serviceWorker.getRegistrations().then(regs =>
+    regs.forEach(reg => reg.unregister())
+  );
 }
 
 console.log('🚀 ENTRY file loaded');
-const API_BASE = import.meta.env.VITE_API_BASE
-  || 'https://snpit-line-bot.onrender.com';
+const API_BASE = import.meta.env.VITE_API_BASE;
 console.log('🌐 API_BASE =', API_BASE);
 
 import React from 'react';
