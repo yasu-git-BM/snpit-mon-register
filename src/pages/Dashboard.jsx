@@ -8,12 +8,17 @@ export default function Dashboard() {
 
   useEffect(() => {
     let cancel = false;
+    console.log('🚀 Dashboard useEffect start');
 
     async function load() {
       try {
         const d = await fetchStatus();
-        if (!cancel) setData(d);
+        if (!cancel) {
+          console.log('✅ fetchStatus resolved');
+          setData(d);
+        }
       } catch (e) {
+        console.error('❌ fetchStatus error:', e);
         if (!cancel) setError(e.message);
       }
     }
