@@ -2,36 +2,39 @@
 import React, { useEffect, useState } from 'react';
 import { fetchConfig, fetchStatus, updateStatus } from './api/client';
 
-export default function App({ apiBase }) {
-  const [config, setConfig]   = useState(null);
-  const [status, setStatus]   = useState(null);
-  const [error, setError]     = useState(null);
+export default function App() {
+  const [config, setConfig] = useState(null);
+  const [status, setStatus] = useState(null);
+  const [error, setError]   = useState(null);
 
   useEffect(() => {
-    fetchConfig()
-      .then(cfg => setConfig(cfg))
-      .catch(err => setError(err.message));
-
-    fetchStatus()
-      .then(st => setStatus(st))
-      .catch(err => setError(err.message));
+    fetchConfig().then(setConfig).catch(err => setError(err.message));
+    fetchStatus().then(setStatus).catch(err => setError(err.message));
   }, []);
 
-  const handleUpdate = () => {
-    updateStatus()
-      .then(res => fetchStatus())
-      .then(st => setStatus(st))
-      .catch(err => setError(err.message));
+  // ← 修正：updateStatus の1回呼びでセット
+  const handleUpdate = async () => {
+    try {
+      // ボタンで newData を決めているなら第一引数に渡す
+      const newData = status; 
+      const updated = await updateStatus(newData);
+      setStatus(updated);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
-  if (error) return <pre>Error: {error}</pre>;
-  if (!config || !status) return <p>Loading…</p>;
+  if (error) {
+    return <div className="error">Error: {error}</div>;
+  }
+  if (!config || !status) {
+    return <div className="loading">Loading…</div>;
+  }
 
   return (
-    <div>
+    <div className="container">
       <h1>MON Register</h1>
-      <pre>Config: {JSON.stringify(config, null, 2)}</pre>
-      <pre>Status: {JSON.stringify(status, null, 2)}</pre>
+      {/* …省略… */}
       <button onClick={handleUpdate}>Update Status</button>
     </div>
   );
