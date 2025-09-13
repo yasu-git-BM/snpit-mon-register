@@ -3,71 +3,109 @@ import React, { useState } from 'react';
 import { updateStatus } from '../api/client';
 
 export default function CameraCard({ currentStatus, onStatusUpdated }) {
-  const [cameraName, setCameraName] = useState('');
-  const [nftAddress, setNftAddress] = useState('');
+  const [walletName, setWalletName] = useState('');
+  const [walletAddress, setWalletAddress] = useState('');
+  const [nftTokenId, setNftTokenId] = useState('');
+  const [nftName, setNftName] = useState('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // バリデーション（重複登録防止）
-    if (!cameraName.trim() || !nftAddress.trim()) return;
-    if (currentStatus && Object.prototype.hasOwnProperty.call(currentStatus, cameraName)) {
-      alert('同名のカメラが既に存在します。別名で登録してください。');
+  const handleRegister = async () => {
+    if (!walletAddress.trim() || !nftTokenId.trim()) {
+      alert('ウォレットアドレスとNFT Token IDは必須です');
       return;
     }
 
-    // 既存ステータスに新カメラを追加
-    const newStatus = {
-      ...(currentStatus || {}),
-      [cameraName]: {
-        nftAddress,
-        count: 0,
-        lastShot: null
-      }
+    // 現在の status をコピー（wallets配列を保証）
+    const updatedStatus = currentStatus && typeof currentStatus === 'object'
+      ? { ...currentStatus }
+      : { wallets: [] };
+
+    if (!Array.isArray(updatedStatus.wallets)) {
+      updatedStatus.wallets = [];
+    }
+
+    // 新しいNFTオブジェクト
+    const newNft = {
+      tokenId: nftTokenId.trim(),
+      name: nftName.trim() || undefined,
+      lastTotalShots: 0
     };
 
+    // 既存ウォレットを探す
+    const existingWallet = updatedStatus.wallets.find(
+      w => w['wallet address']?.toLowerCase() === walletAddress.trim().toLowerCase()
+    );
+
+    if (existingWallet) {
+      // 既存ウォレットにNFT追加
+      if (!Array.isArray(existingWallet.nfts)) {
+        existingWallet.nfts = [];
+      }
+      existingWallet.nfts.push(newNft);
+    } else {
+      // 新規ウォレット作成
+      updatedStatus.wallets.push({
+        'wallet name': walletName.trim() || undefined,
+        'wallet address': walletAddress.trim(),
+        maxShots: 16,
+        enableShots: 0,
+        lastChecked: new Date().toISOString(),
+        nfts: [newNft]
+      });
+    }
+
     try {
-      const updated = await updateStatus(newStatus);
-      onStatusUpdated(updated);
-      setCameraName('');
-      setNftAddress('');
+      console.log('📤 handleRegister → updateStatus with:', updatedStatus);
+      const saved = await updateStatus(updatedStatus);
+      console.log('✅ updateStatus result:', saved);
+      onStatusUpdated?.(saved);
+
+      // 入力欄クリア
+      setWalletName('');
+      setWalletAddress('');
+      setNftTokenId('');
+      setNftName('');
     } catch (err) {
+      console.error('❌ updateStatus error:', err);
       alert(`登録に失敗しました: ${err.message}`);
     }
   };
 
   return (
-    <div style={{ marginTop: '1.5rem', padding: '1rem', border: '1px solid #ddd', borderRadius: 8 }}>
-      <h3 style={{ marginTop: 0 }}>カメラ登録</h3>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '0.75rem' }}>
-          <label style={{ display: 'block', marginBottom: 4 }}>カメラ名</label>
-          <input
-            type="text"
-            value={cameraName}
-            onChange={(e) => setCameraName(e.target.value)}
-            placeholder="例: Alpha-01"
-            required
-            style={{ width: '100%', padding: '0.5rem' }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '0.75rem' }}>
-          <label style={{ display: 'block', marginBottom: 4 }}>NFTアドレス</label>
-          <input
-            type="text"
-            value={nftAddress}
-            onChange={(e) => setNftAddress(e.target.value)}
-            placeholder="0x..."
-            required
-            style={{ width: '100%', padding: '0.5rem' }}
-          />
-        </div>
-
-        <button type="submit" style={{ padding: '0.5rem 1rem', cursor: 'pointer' }}>
+    <div style={{ border: '1px solid #ccc', padding: '1rem', borderRadius: 8, marginTop: '1.5rem' }}>
+      <h2 style={{ marginTop: 0 }}>カメラ登録</h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <input
+          type="text"
+          placeholder="ウォレット名（任意）"
+          value={walletName}
+          onChange={e => setWalletName(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="ウォレットアドレス（必須）"
+          value={walletAddress}
+          onChange={e => setWalletAddress(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="NFT Token ID（必須）"
+          value={nftTokenId}
+          onChange={e => setNftTokenId(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="カメラ名（任意）"
+          value={nftName}
+          onChange={e => setNftName(e.target.value)}
+        />
+        <button
+          type="button"
+          onClick={handleRegister}
+          style={{ padding: '0.5rem', cursor: 'pointer' }}
+        >
           登録
         </button>
-      </form>
+      </div>
     </div>
   );
 }
