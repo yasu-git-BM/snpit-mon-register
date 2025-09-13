@@ -1,6 +1,6 @@
 import React from 'react';
 import Dashboard from './pages/Dashboard';
-console.log('Åö ENTRY file loaded');
+console.log('‚òÖ ENTRY file loaded');
 
 export default function App() {
   return <Dashboard />;
