@@ -1,6 +1,4 @@
-// src/api/client.js
-
-// VITE_API_BASE は .env や Vercel/Render の環境変数で設定
+// mon_register/src/api/client.js
 export const API_BASE = import.meta.env.VITE_API_BASE;
 
 // 設定取得
@@ -10,7 +8,7 @@ export async function fetchConfig() {
   return res.json();
 }
 
-// ステータス取得（POST /api/status）
+// ステータス取得
 export async function fetchStatus() {
   const res = await fetch(`${API_BASE}/api/status`, {
     method:  'POST',
@@ -20,7 +18,7 @@ export async function fetchStatus() {
   return res.json();
 }
 
-// ステータス更新（POST /api/update/status）→ 更新後データを返却
+// ステータス更新（更新後データを返す）
 export async function updateStatus(newData) {
   const res = await fetch(`${API_BASE}/api/update/status`, {
     method:  'POST',
