@@ -1,50 +1,88 @@
 // src/pages/Dashboard.jsx
 import React, { useEffect, useState } from 'react';
 import { fetchStatus } from '../api/fetchStatus';
-import { sortWalletEntries } from '../utils/sortWallets';
 
 export default function Dashboard() {
-  const [walletData, setWalletData] = useState({});
+  const [data, setData] = useState({ wallets: [] });
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchStatus()
-      .then(setWalletData)
-      .catch(err => setError(err.message));
+    let cancel = false;
+
+    async function load() {
+      try {
+        const d = await fetchStatus();
+        if (!cancel) setData(d);
+      } catch (e) {
+        if (!cancel) setError(e.message);
+      }
+    }
+
+    load();
+    return () => { cancel = true; };
   }, []);
 
-  if (error) return <div style={{ color: 'red' }}>Error: {error}</div>;
-  if (!walletData || Object.keys(walletData).length === 0) return <div>Loading…</div>;
-
-  const sortedWallets = sortWalletEntries(walletData);
+  console.log('🖥️ Dashboard state data:', data);
 
   return (
-    <div style={{ padding: '1rem' }}>
-      <h1>ウォレット一覧</h1>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>ウォレット名</th>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>アドレス</th>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>その他情報</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedWallets.map(([address, info]) => (
-            <tr key={address}>
-              <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
-                {info.name || '-'}
-              </td>
-              <td style={{ border: '1px solid #ccc', padding: '0.5rem', fontFamily: 'monospace' }}>
-                {address}
-              </td>
-              <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
-                {info.count ?? 0} shots
-              </td>
+    <div style={{ padding: 16, maxWidth: 900, margin: '0 auto' }}>
+      <h1 style={{ marginTop: 0 }}>MON Register</h1>
+
+      {error && (
+        <div style={{ color: 'red', marginBottom: 12 }}>
+          Error: {error}
+        </div>
+      )}
+
+      <section style={{ marginTop: 12 }}>
+        <h2 style={{ margin: '8px 0' }}>Status</h2>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+          <thead>
+            <tr>
+              <th style={{ border: '1px solid #ddd', padding: 6, textAlign: 'left' }}>Wallet name</th>
+              <th style={{ border: '1px solid #ddd', padding: 6, textAlign: 'left' }}>Wallet address</th>
+              <th style={{ border: '1px solid #ddd', padding: 6, textAlign: 'right' }}>enableShots</th>
+              <th style={{ border: '1px solid #ddd', padding: 6, textAlign: 'left' }}>lastChecked</th>
+              <th style={{ border: '1px solid #ddd', padding: 6, textAlign: 'left' }}>NFTs (tokenId : name / lastTotalShots)</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {Array.isArray(data.wallets) && data.wallets.length > 0 ? (
+              data.wallets.map((w, idx) => (
+                <tr key={idx}>
+                  <td style={{ border: '1px solid #eee', padding: 6 }}>{w['wallet name'] || '-'}</td>
+                  <td style={{ border: '1px solid #eee', padding: 6, fontFamily: 'monospace' }}>{w['wallet address'] || '-'}</td>
+                  <td style={{ border: '1px solid #eee', padding: 6, textAlign: 'right' }}>{w.enableShots ?? 0}</td>
+                  <td style={{ border: '1px solid #eee', padding: 6 }}>{w.lastChecked || '-'}</td>
+                  <td style={{ border: '1px solid #eee', padding: 6 }}>
+                    {Array.isArray(w.nfts) && w.nfts.length > 0 ? (
+                      <ul style={{ margin: 0, paddingLeft: 16 }}>
+                        {w.nfts.map((n, i) => (
+                          <li key={i} style={{ margin: '2px 0' }}>
+                            <span style={{ fontFamily: 'monospace' }}>{n.tokenId || '-'}</span>
+                            {' : '}
+                            <span>{n.name || '-'}</span>
+                            {' / '}
+                            <span>{n.lastTotalShots ?? 0}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span>-</span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={5} style={{ border: '1px solid #eee', padding: 8, textAlign: 'center', color: '#888' }}>
+                  No wallets
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </section>
     </div>
   );
 }
