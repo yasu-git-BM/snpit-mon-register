@@ -9,18 +9,42 @@ export default function App() {
   const [error, setError]   = useState(null);
 
   useEffect(() => {
-    fetchConfig().then(setConfig).catch(err => setError(err.message));
-    fetchStatus().then(setStatus).catch(err => setError(err.message));
+    console.log('🚀 useEffect start in App');
+
+    fetchConfig()
+      .then(cfg => {
+        console.log('📥 fetchConfig result:', cfg);
+        setConfig(cfg);
+      })
+      .catch(err => {
+        console.error('❌ fetchConfig error:', err);
+        setError(err.message);
+      });
+
+    fetchStatus()
+      .then(st => {
+        console.log('📥 fetchStatus result:', st);
+        setStatus(st);
+      })
+      .catch(err => {
+        console.error('❌ fetchStatus error:', err);
+        setError(err.message);
+      });
   }, []);
 
   const handleUpdate = async () => {
     try {
+      console.log('🔄 handleUpdate called with status:', status);
       const updated = await updateStatus(status);
+      console.log('✅ updateStatus result:', updated);
       setStatus(updated);
     } catch (err) {
+      console.error('❌ updateStatus error:', err);
       setError(err.message);
     }
   };
+
+  console.log('🖥️ App render - config:', config, 'status:', status);
 
   if (error) return <div style={{ color: 'red' }}>Error: {error}</div>;
   if (!config || !status) return <div>Loading…</div>;
