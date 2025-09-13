@@ -1,20 +1,32 @@
 // src/api/client.js
+
+// VITE_API_BASE は .env や Vercel/Render の環境変数で設定
 export const API_BASE = import.meta.env.VITE_API_BASE;
 
-// 設定取得はそのまま
+// 設定取得
 export async function fetchConfig() {
   const res = await fetch(`${API_BASE}/config.json`);
-  if (!res.ok) throw new Error(res.status);
+  if (!res.ok) throw new Error(`fetchConfig failed: ${res.status}`);
   return res.json();
 }
 
-// ステータス更新 → 更新後の最新データを返すように
+// ステータス取得（POST /api/status）
+export async function fetchStatus() {
+  const res = await fetch(`${API_BASE}/api/status`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) throw new Error(`fetchStatus failed: ${res.status}`);
+  return res.json();
+}
+
+// ステータス更新（POST /api/update/status）→ 更新後データを返却
 export async function updateStatus(newData) {
   const res = await fetch(`${API_BASE}/api/update/status`, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify(newData)
   });
-  if (!res.ok) throw new Error(res.status);
-  return res.json();  // 更新後のステータスをそのまま返却
+  if (!res.ok) throw new Error(`updateStatus failed: ${res.status}`);
+  return res.json();
 }
