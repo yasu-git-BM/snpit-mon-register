@@ -1,58 +1,50 @@
+// src/pages/Dashboard.jsx
 import React, { useEffect, useState } from 'react';
 import { fetchStatus } from '../api/fetchStatus';
-import { updateStatus } from '../api/updateStatus';
-import WalletForm from '../components/WalletForm';
-import WalletCard from '../components/WalletCard';
-import CameraCard from '../components/CameraCard';
-import SettingsPanel from '../components/SettingsPanel';
-import '../styles/theme.js';
+import { sortWalletEntries } from '../utils/sortWallets';
 
 export default function Dashboard() {
-  const [statusData, setStatusData] = useState({});
-  const [walletOrder, setWalletOrder] = useState([]);
-  const [refreshFlag, setRefreshFlag] = useState(false);
+  const [walletData, setWalletData] = useState({});
+  const [error, setError] = useState(null);
 
-  // 初回ロード／更新後にステータスを取得
   useEffect(() => {
-    (async () => {
-      try {
-        const status = await fetchStatus();
-        setStatusData(status);
-      } catch (err) {
-        console.error('fetchStatus error:', err);
-      }
-    })();
-  }, [refreshFlag]);
+    fetchStatus()
+      .then(setWalletData)
+      .catch(err => setError(err.message));
+  }, []);
 
-  // 「最新化」ボタン押下時にステータス更新APIを呼ぶ
-  const onRefresh = async () => {
-    try {
-      await updateStatus();
-      setRefreshFlag(f => !f);
-    } catch (err) {
-      console.error('updateStatus error:', err);
-    }
-  };
+  if (error) return <div style={{ color: 'red' }}>Error: {error}</div>;
+  if (!walletData || Object.keys(walletData).length === 0) return <div>Loading…</div>;
+
+  const sortedWallets = sortWalletEntries(walletData);
 
   return (
-    <div style={{ padding: 20, maxWidth: 800, margin: '0 auto' }}>
-      <SettingsPanel onAddWallet={address => {
-        setWalletOrder(order => [...order, address]);
-      }} />
-
-      <button onClick={onRefresh} style={{ margin: '20px 0' }}>
-        最新化
-      </button>
-
-      <div>
-        {/* Wallet の順番に合わせて CameraCard を並べる */}
-        {walletOrder.map(addr => {
-          const data = statusData[addr];
-          return data
-            ? <CameraCard key={addr} wallet={addr} status={data} />
-            : <WalletCard key={addr} wallet={addr} missing />;
-        })}
-      </div>
+    <div style={{ padding: '1rem' }}>
+      <h1>ウォレット一覧</h1>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr>
+            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>ウォレット名</th>
+            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>アドレス</th>
+            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>その他情報</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sortedWallets.map(([address, info]) => (
+            <tr key={address}>
+              <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
+                {info.name || '-'}
+              </td>
+              <td style={{ border: '1px solid #ccc', padding: '0.5rem', fontFamily: 'monospace' }}>
+                {address}
+              </td>
+              <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
+                {info.count ?? 0} shots
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
