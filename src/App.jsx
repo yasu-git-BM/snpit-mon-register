@@ -20,7 +20,6 @@ export default function App() {
         setError(err.message);
       });
 
-    // 起動時はGETに変更したfetchStatusを呼び出す
     fetchStatus()
       .then(st => {
         console.log('📥 fetchStatus result:', st);
@@ -53,6 +52,7 @@ export default function App() {
     <div style={{ maxWidth: 680, margin: '2rem auto', fontFamily: 'sans-serif' }}>
       <h1 style={{ textAlign: 'center' }}>MON Register</h1>
 
+      {/* Config 表示 */}
       <section style={{ marginBottom: '1.5rem' }}>
         <h2>Config</h2>
         <ul>
@@ -62,38 +62,44 @@ export default function App() {
         </ul>
       </section>
 
+      {/* Status 表示（wallets配列を直接描画） */}
       <section style={{ marginBottom: '1.5rem' }}>
         <h2>Status</h2>
-        {Object.keys(status).length === 0 ? (
-          <p>No status data</p>
-        ) : (
+        {status.wallets?.length ? (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
-                <th style={{ border: '1px solid #ccc', padding: '0.5rem', background: '#f5f5f5' }}>Camera</th>
-                <th style={{ border: '1px solid #ccc', padding: '0.5rem', background: '#f5f5f5' }}>Last Shot</th>
-                <th style={{ border: '1px solid #ccc', padding: '0.5rem', background: '#f5f5f5' }}>Count</th>
-                <th style={{ border: '1px solid #ccc', padding: '0.5rem', background: '#f5f5f5' }}>NFT Address</th>
+                <th style={{ border: '1px solid #ccc', padding: '0.5rem', background: '#f5f5f5' }}>Wallet Name</th>
+                <th style={{ border: '1px solid #ccc', padding: '0.5rem', background: '#f5f5f5' }}>Last Checked</th>
+                <th style={{ border: '1px solid #ccc', padding: '0.5rem', background: '#f5f5f5' }}>Total Shots</th>
+                <th style={{ border: '1px solid #ccc', padding: '0.5rem', background: '#f5f5f5' }}>NFT Token ID</th>
               </tr>
             </thead>
             <tbody>
-              {Object.entries(status).map(([cam, info]) => (
-                <tr key={cam}>
-                  <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>{cam}</td>
+              {status.wallets.map((w, idx) => (
+                <tr key={idx}>
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
-                    {info.lastShot ? new Date(info.lastShot).toLocaleString('ja-JP') : '-'}
+                    {w['wallet name'] ?? '-'}
                   </td>
-                  <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>{info.count ?? 0}</td>
+                  <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
+                    {w.lastChecked ? new Date(w.lastChecked).toLocaleString('ja-JP') : '-'}
+                  </td>
+                  <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
+                    {w.nfts?.[0]?.lastTotalShots ?? 0}
+                  </td>
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem', fontFamily: 'monospace' }}>
-                    {info.nftAddress ?? '-'}
+                    {w.nfts?.[0]?.tokenId ?? '-'}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        ) : (
+          <p>No status data</p>
         )}
       </section>
 
+      {/* 更新ボタン */}
       <button
         type="button"
         onClick={handleUpdate}
@@ -102,7 +108,7 @@ export default function App() {
         Update Status
       </button>
 
-      {/* カメラ登録カード（フォーム） */}
+      {/* カメラ登録カード */}
       <CameraCard currentStatus={status} onStatusUpdated={setStatus} />
     </div>
   );
