@@ -5,7 +5,7 @@ import CameraCard from './components/CameraCard';
 
 export default function App() {
   const [config, setConfig] = useState(null);
-  const [status, setStatus] = useState(null);
+  const [status, setStatus] = useState({ wallets: [] }); // ✅ 初期構造を明示
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
 
@@ -23,9 +23,9 @@ export default function App() {
       });
 
     fetchStatus()
-      .then(st => {
-        console.log('📥 fetchStatus result:', st);
-        setStatus(st);
+      .then(result => {
+        console.log('📥 fetchStatus result:', result);
+        setStatus({ wallets: result }); // ✅ 配列 → オブジェクトにラップ
       })
       .catch(err => {
         console.error('❌ fetchStatus error:', err);
@@ -35,12 +35,12 @@ export default function App() {
 
   const handleUpdate = async () => {
     try {
-      console.log('🧪 Before updateStatus, current status:', status); // ✅ 状態確認ログ
+      console.log('🧪 Before updateStatus, current status:', status);
       setUpdating(true);
-      await updateStatus(status);
+      await updateStatus(status.wallets); // ✅ Gist保存は配列形式
       const refreshed = await fetchStatus();
       console.log('✅ updateStatus + reload result:', refreshed);
-      setStatus(refreshed);
+      setStatus({ wallets: refreshed }); // ✅ 再取得もラップ
       setError(null);
     } catch (err) {
       console.error('❌ updateStatus error:', err);
@@ -60,13 +60,12 @@ export default function App() {
     return <div style={{ color: 'red' }}>Error: {error}</div>;
   }
 
-  if (!config || !status) return <div>Loading…</div>;
+  if (!config || !status?.wallets) return <div>Loading…</div>;
 
   return (
     <div style={{ maxWidth: 900, margin: '2rem auto', fontFamily: 'sans-serif' }}>
       <h1 style={{ textAlign: 'center' }}>MON Register</h1>
 
-      {/* ✅ CameraCard を先に表示 */}
       <CameraCard currentStatus={status} onStatusUpdated={setStatus} />
 
       <WalletTable status={status} setStatus={setStatus} />
@@ -99,7 +98,6 @@ export default function App() {
         </ul>
       </section>
 
-      {/* ✅ status の中身を表示 */}
       <section style={{ marginTop: '2rem' }}>
         <h2>Debug: Current Status</h2>
         <pre style={{
