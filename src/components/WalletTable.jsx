@@ -15,20 +15,6 @@ function getCameraName(nft) {
   return nft?.name ?? '';
 }
 
-function isUnregistered(wallet) {
-  return wallet.maxShots == null && wallet.enableShots == null;
-}
-
-function isInconsistent(wallet) {
-  if (isUnregistered(wallet)) return false;
-  const max = wallet.maxShots;
-  const enable = wallet.enableShots;
-  if (enable == null && max != null) return true;
-  if (typeof enable === 'number' && enable < 0) return true;
-  if (typeof enable === 'number' && typeof max === 'number' && enable > max) return true;
-  return false;
-}
-
 export default function WalletTable({ status, setStatus }) {
   console.log('📦 WalletTable received status:', status);
 
@@ -63,7 +49,6 @@ export default function WalletTable({ status, setStatus }) {
 
               const tokenId = getTokenId(nft);
               const cameraName = getCameraName(nft);
-              const inconsistent = isInconsistent(w);
 
               return (
                 <tr key={`${wIdx}-${nIdx}`} style={{ backgroundColor: '#fff' }}>
@@ -123,23 +108,24 @@ export default function WalletTable({ status, setStatus }) {
                     />
                   </td>
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
-                    {inconsistent ? (
-                      <span style={{ color: 'red', fontWeight: 'bold' }}>不整合</span>
-                    ) : (
-                      <input
-                        type="number"
-                        value={w.enableShots ?? ''}
-                        min="0"
-                        onChange={e => {
-                          const val = e.target.value === '' ? null : Math.max(0, parseInt(e.target.value, 10) || 0);
-                          setStatus(prev => {
-                            const updated = { ...prev };
-                            updated.wallets[wIdx].enableShots = val;
-                            return updated;
-                          });
-                        }}
-                        style={{ width: '5rem' }}
-                      />
+                    <input
+                      type="number"
+                      value={w.enableShots ?? ''}
+                      min="0"
+                      onChange={e => {
+                        const val = e.target.value === '' ? null : Math.max(0, parseInt(e.target.value, 10) || 0);
+                        setStatus(prev => {
+                          const updated = { ...prev };
+                          updated.wallets[wIdx].enableShots = val;
+                          return updated;
+                        });
+                      }}
+                      style={{ width: '5rem' }}
+                    />
+                    {w.inconsistentReason && (
+                      <div style={{ color: 'red', fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                        ⚠️ {w.inconsistentReason}
+                      </div>
                     )}
                   </td>
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>

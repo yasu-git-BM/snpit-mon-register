@@ -3,11 +3,40 @@ import { fetchConfig, fetchStatus, updateStatus } from './api/client';
 import WalletTable from './components/WalletTable';
 import CameraCard from './components/CameraCard';
 
+function checkWalletInconsistency(wallet) {
+  const max = Number(wallet.maxShots);
+  const enable = Number(wallet.enableShots);
+
+  if (isNaN(enable) && !isNaN(max)) return 'Enable Shots が未設定';
+  if (!isNaN(enable) && enable < 0) return 'Enable Shots が負の値';
+  if (!isNaN(enable) && !isNaN(max) && enable > max) return 'Enable Shots が Max を超えている';
+
+  return null; // 問題なし
+}
+
 export default function App() {
   const [config, setConfig] = useState(null);
-  const [status, setStatus] = useState({ wallets: [] }); // ✅ 初期構造を明示
+  const [status, setStatus] = useState({ wallets: [] });
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
+
+  const verifyStatus = rawWallets => {
+    return rawWallets.map(w => {
+      const reason = checkWalletInconsistency(w);
+      return { ...w, inconsistent: !!reason, inconsistentReason: reason };
+    });
+  };
+
+  const loadStatus = async () => {
+    try {
+      const raw = await fetchStatus();
+      const verified = verifyStatus(raw);
+      setStatus({ wallets: verified });
+    } catch (err) {
+      console.error('❌ fetchStatus error:', err);
+      setError(err.message);
+    }
+  };
 
   useEffect(() => {
     console.log('🚀 useEffect start in App');
@@ -22,25 +51,15 @@ export default function App() {
         setError(err.message);
       });
 
-    fetchStatus()
-      .then(result => {
-        console.log('📥 fetchStatus result:', result);
-        setStatus({ wallets: result }); // ✅ 配列 → オブジェクトにラップ
-      })
-      .catch(err => {
-        console.error('❌ fetchStatus error:', err);
-        setError(err.message);
-      });
+    loadStatus();
   }, []);
 
   const handleUpdate = async () => {
     try {
       console.log('🧪 Before updateStatus, current status:', status);
       setUpdating(true);
-      await updateStatus(status.wallets); // ✅ Gist保存は配列形式
-      const refreshed = await fetchStatus();
-      console.log('✅ updateStatus + reload result:', refreshed);
-      setStatus({ wallets: refreshed }); // ✅ 再取得もラップ
+      await updateStatus(status.wallets);
+      await loadStatus(); // ✅ 再取得＋検証
       setError(null);
     } catch (err) {
       console.error('❌ updateStatus error:', err);
@@ -66,7 +85,6 @@ export default function App() {
     <div style={{ maxWidth: 900, margin: '2rem auto', fontFamily: 'sans-serif' }}>
       <h1 style={{ textAlign: 'center' }}>MON Register</h1>
 
-      {/* ✅ CameraCard を先に表示 */}
       <CameraCard currentStatus={status} onStatusUpdated={setStatus} />
 
       <WalletTable status={status} setStatus={setStatus} />
@@ -97,19 +115,6 @@ export default function App() {
             </li>
           ))}
         </ul>
-      </section>
-
-      <section style={{ marginTop: '2rem' }}>
-        <h2>Debug: Current Status</h2>
-        <pre style={{
-          backgroundColor: '#f0f0f0',
-          padding: '1rem',
-          fontSize: '0.8rem',
-          overflowX: 'auto',
-          border: '1px solid #ccc'
-        }}>
-          {JSON.stringify(status, null, 2)}
-        </pre>
       </section>
     </div>
   );
