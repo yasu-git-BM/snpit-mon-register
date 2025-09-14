@@ -6,15 +6,6 @@ function formatAddress(addr) {
   return `${addr.slice(0, 5)}...${addr.slice(-5)}`;
 }
 
-function getTokenId(nft) {
-  if (!nft) return null;
-  return nft.tokenId ?? nft.tokeinid ?? null;
-}
-
-function getCameraName(nft) {
-  return nft?.name ?? '';
-}
-
 export default function WalletTable({ status, setStatus }) {
   if (!status?.wallets?.length) return null;
 
@@ -39,9 +30,23 @@ export default function WalletTable({ status, setStatus }) {
             (w.nfts?.length ? w.nfts : [null]).map((nft, nIdx) => {
               const tokenId = nft?.tokenId ?? nft?.tokeinid ?? null;
               const cameraName = nft?.name ?? '';
+              const enableShots = w.enableShots;
+              const maxShots = w.maxShots;
+              const lastShots = nft?.lastTotalShots;
+              const recordedShots = nft?.recordedShots;
+
+              const enableBg =
+                enableShots === null ? '#ffe5e5' :
+                enableShots === maxShots ? '#e5ffe5' :
+                enableShots < maxShots ? '#fffbe5' : '#fff';
+
+              const shotDelta = (typeof lastShots === 'number' && typeof recordedShots === 'number')
+                ? lastShots - recordedShots
+                : null;
 
               return (
                 <tr key={`${wIdx}-${nIdx}`} style={{ backgroundColor: '#fff' }}>
+                  {/* Wallet Name */}
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
                     <input
                       type="text"
@@ -57,9 +62,13 @@ export default function WalletTable({ status, setStatus }) {
                       style={{ width: '10rem' }}
                     />
                   </td>
+
+                  {/* Wallet Address */}
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem', fontFamily: 'monospace' }}>
                     {formatAddress(w['wallet address'])}
                   </td>
+
+                  {/* Camera Name */}
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
                     <input
                       type="text"
@@ -81,10 +90,12 @@ export default function WalletTable({ status, setStatus }) {
                       style={{ width: '10rem' }}
                     />
                   </td>
+
+                  {/* Max Shots */}
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
                     <input
                       type="number"
-                      value={w.maxShots ?? ''}
+                      value={maxShots ?? ''}
                       min="0"
                       onChange={e => {
                         const val = e.target.value === '' ? null : Math.max(0, parseInt(e.target.value, 10) || 0);
@@ -97,10 +108,12 @@ export default function WalletTable({ status, setStatus }) {
                       style={{ width: '5rem' }}
                     />
                   </td>
+
+                  {/* Enable Shots */}
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
                     <input
                       type="number"
-                      value={w.enableShots ?? ''}
+                      value={enableShots ?? ''}
                       min="0"
                       onChange={e => {
                         const val = e.target.value === '' ? null : Math.max(0, parseInt(e.target.value, 10) || 0);
@@ -110,21 +123,35 @@ export default function WalletTable({ status, setStatus }) {
                           return updated;
                         });
                       }}
-                      style={{ width: '5rem' }}
+                      style={{ width: '5rem', backgroundColor: enableBg }}
                     />
-                    {w.inconsistentReason && (
+                    {enableShots === null && (
                       <div style={{ color: 'red', fontSize: '0.8rem', marginTop: '0.25rem' }}>
-                        ⚠️ {w.inconsistentReason}
+                        ⚠️ 不整合
+                      </div>
+                    )}
+                    {enableShots !== null && maxShots !== null && enableShots < maxShots && (
+                      <div style={{ color: '#996600', fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                        残り {enableShots} / {maxShots}
+                      </div>
+                    )}
+                    {enableShots === maxShots && (
+                      <div style={{ color: 'green', fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                        満タン
                       </div>
                     )}
                   </td>
+
+                  {/* Last Checked */}
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
                     {w.lastChecked ? new Date(w.lastChecked).toLocaleString('ja-JP') : '-'}
                   </td>
+
+                  {/* Total Shots */}
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
                     <input
                       type="number"
-                      value={nft?.lastTotalShots ?? ''}
+                      value={lastShots ?? ''}
                       min="0"
                       onChange={e => {
                         const raw = e.target.value;
@@ -143,7 +170,14 @@ export default function WalletTable({ status, setStatus }) {
                       }}
                       style={{ width: '5rem' }}
                     />
+                    {shotDelta !== null && (
+                      <div style={{ fontSize: '0.8rem', marginTop: '0.25rem', color: shotDelta > 0 ? 'blue' : shotDelta < 0 ? 'red' : '#666' }}>
+                        {shotDelta > 0 ? `+${shotDelta}枚` : shotDelta < 0 ? '⚠️ 不整合' : '変化なし'}
+                      </div>
+                    )}
                   </td>
+
+                  {/* Token ID */}
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
                     <input
                       type="text"
@@ -171,6 +205,8 @@ export default function WalletTable({ status, setStatus }) {
                       style={{ width: '10rem' }}
                     />
                   </td>
+
+                  {/* Delete Button */}
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem', textAlign: 'center' }}>
                     <button
                       type="button"

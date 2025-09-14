@@ -10,18 +10,28 @@ export function normalizeWallets(wallets) {
   wallets.forEach(wallet => {
     const address = wallet['wallet address'];
     const name = wallet['wallet name'] ?? '';
-    const enableShots = wallet.enableShots ?? 0;
+    const enableShots = wallet.enableShots ?? null;
+    const maxShots = wallet.maxShots ?? null;
+    const lastChecked = wallet.lastChecked ?? null;
 
     // NFTの総ショット数を集計
     const totalShots = (wallet.nfts ?? []).reduce((sum, nft) => {
       return sum + (nft?.lastTotalShots ?? 0);
     }, 0);
 
+    // 不整合判定
+    const inconsistent =
+      enableShots === null ||
+      (typeof enableShots === 'number' && enableShots < 0) ||
+      (typeof enableShots === 'number' && typeof maxShots === 'number' && enableShots > maxShots);
+
     result[address] = {
       name,
       enableShots,
+      maxShots,
       count: totalShots,
-      lastChecked: wallet.lastChecked ?? null
+      lastChecked,
+      inconsistent
     };
   });
 
