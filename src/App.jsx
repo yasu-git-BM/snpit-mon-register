@@ -18,13 +18,16 @@ function sanitizeStatus(raw) {
   const wallets = raw.wallets.map(w => {
     const nfts = (w.nfts ?? []).map(nft => {
       const copy = { ...nft };
-      if (typeof copy.lastTotalShots === 'string') {
-        const parsed = parseInt(copy.lastTotalShots, 10);
-        copy.lastTotalShots = isNaN(parsed) ? 0 : parsed;
-      }
+      copy.lastTotalShots = Number(copy.lastTotalShots ?? 0);
+      copy.tokenId = /^[0-9]+$/.test(copy.tokenId) ? Number(copy.tokenId) : copy.tokenId;
       return copy;
     });
-    return { ...w, nfts };
+    return {
+      ...w,
+      maxShots: Number(w.maxShots ?? 0),
+      enableShots: Number(w.enableShots ?? 0),
+      nfts
+    };
   });
   return { wallets };
 }
