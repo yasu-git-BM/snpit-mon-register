@@ -35,7 +35,7 @@ export default function App() {
 
   const handleUpdate = async () => {
     try {
-      console.log('🔄 handleUpdate called with status:', status);
+      console.log('🧪 Before updateStatus, current status:', status); // ✅ 状態確認ログ
       setUpdating(true);
       await updateStatus(status);
       const refreshed = await fetchStatus();
@@ -66,6 +66,9 @@ export default function App() {
     <div style={{ maxWidth: 900, margin: '2rem auto', fontFamily: 'sans-serif' }}>
       <h1 style={{ textAlign: 'center' }}>MON Register</h1>
 
+      {/* ✅ CameraCard を先に表示 */}
+      <CameraCard currentStatus={status} onStatusUpdated={setStatus} />
+
       <WalletTable status={status} setStatus={setStatus} />
 
       <button
@@ -85,8 +88,6 @@ export default function App() {
         {updating ? 'Updating…' : 'Update Status'}
       </button>
 
-      <CameraCard currentStatus={status} onStatusUpdated={setStatus} />
-
       <section style={{ marginTop: '2rem' }}>
         <h2>Config</h2>
         <ul>
@@ -98,7 +99,7 @@ export default function App() {
         </ul>
       </section>
 
-      {/* ✅ デバッグ表示：現在の status を確認 */}
+      {/* ✅ status の中身を表示 */}
       <section style={{ marginTop: '2rem' }}>
         <h2>Debug: Current Status</h2>
         <pre style={{
