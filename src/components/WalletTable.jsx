@@ -20,7 +20,7 @@ export default function WalletTable({ status, setStatus }) {
       }}>
         <thead>
           <tr style={{ backgroundColor: '#f5f5f5' }}>
-            {['Wallet Name', 'Wallet Address', 'Camera Name', 'Max Shots', 'Enable Shots', 'Last Checked', 'Total Shots', 'Token ID', '🗑'].map(label => (
+            {['Wallet', 'Max Shots', 'Enable Shots', 'Camera / Token ID', 'Total Shots', 'Last Checked', '🗑'].map(label => (
               <th key={label} style={{ border: '1px solid #ccc', padding: '0.5rem' }}>{label}</th>
             ))}
           </tr>
@@ -28,8 +28,9 @@ export default function WalletTable({ status, setStatus }) {
         <tbody>
           {status.wallets.map((w, wIdx) =>
             (w.nfts?.length ? w.nfts : [null]).map((nft, nIdx) => {
-              const tokenId = nft?.tokenId ?? nft?.tokeinid ?? null;
+              const tokenId = nft?.tokenId ?? nft?.tokeinid ?? '';
               const cameraName = nft?.name ?? '';
+              const imageUrl = nft?.image ?? '';
               const enableShots = w.enableShots;
               const maxShots = w.maxShots;
               const lastShots = nft?.lastTotalShots;
@@ -46,7 +47,7 @@ export default function WalletTable({ status, setStatus }) {
 
               return (
                 <tr key={`${wIdx}-${nIdx}`} style={{ backgroundColor: '#fff' }}>
-                  {/* Wallet Name */}
+                  {/* Wallet Name + Address */}
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
                     <input
                       type="text"
@@ -59,40 +60,15 @@ export default function WalletTable({ status, setStatus }) {
                           return updated;
                         });
                       }}
-                      style={{ width: '10rem' }}
+                      style={{ width: '6rem', marginBottom: '0.25rem' }}
                     />
-                  </td>
-
-                  {/* Wallet Address */}
-                  <td style={{ border: '1px solid #ccc', padding: '0.5rem', fontFamily: 'monospace' }}>
-                    {formatAddress(w['wallet address'])}
-                  </td>
-
-                  {/* Camera Name */}
-                  <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
-                    <input
-                      type="text"
-                      value={cameraName}
-                      onChange={e => {
-                        const val = e.target.value;
-                        setStatus(prev => {
-                          const updated = { ...prev };
-                          const uw = { ...updated.wallets[wIdx] };
-                          const nfts = uw.nfts?.slice() ?? [];
-                          const un = { ...(nft ?? {}) };
-                          un.name = val;
-                          nfts[nIdx] = un;
-                          uw.nfts = nfts;
-                          updated.wallets[wIdx] = uw;
-                          return updated;
-                        });
-                      }}
-                      style={{ width: '10rem' }}
-                    />
+                    <div style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: '#555' }}>
+                      {formatAddress(w['wallet address'])}
+                    </div>
                   </td>
 
                   {/* Max Shots */}
-                  <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
+                  <td style={{ border: '1px solid #ccc', padding: '0.5rem', textAlign: 'right' }}>
                     <input
                       type="number"
                       value={maxShots ?? ''}
@@ -110,7 +86,7 @@ export default function WalletTable({ status, setStatus }) {
                   </td>
 
                   {/* Enable Shots */}
-                  <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
+                  <td style={{ border: '1px solid #ccc', padding: '0.5rem', textAlign: 'right' }}>
                     <input
                       type="number"
                       value={enableShots ?? ''}
@@ -126,29 +102,79 @@ export default function WalletTable({ status, setStatus }) {
                       style={{ width: '5rem', backgroundColor: enableBg }}
                     />
                     {enableShots === null && (
-                      <div style={{ color: 'red', fontSize: '0.8rem', marginTop: '0.25rem' }}>
-                        ⚠️ 不整合
-                      </div>
+                      <div style={{ color: 'red', fontSize: '0.8rem' }}>⚠️ 不整合</div>
                     )}
                     {enableShots !== null && maxShots !== null && enableShots < maxShots && (
-                      <div style={{ color: '#996600', fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                      <div style={{ color: '#996600', fontSize: '0.8rem' }}>
                         残り {enableShots} / {maxShots}
                       </div>
                     )}
                     {enableShots === maxShots && (
-                      <div style={{ color: 'green', fontSize: '0.8rem', marginTop: '0.25rem' }}>
-                        満タン
-                      </div>
+                      <div style={{ color: 'green', fontSize: '0.8rem' }}>満タン</div>
                     )}
                   </td>
 
-                  {/* Last Checked */}
+                  {/* Camera Name + Token ID + Thumbnail */}
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
-                    {w.lastChecked ? new Date(w.lastChecked).toLocaleString('ja-JP') : '-'}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      {imageUrl && (
+                        <img
+                          src={imageUrl}
+                          alt="NFT"
+                          style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }}
+                        />
+                      )}
+                      <div>
+                        <input
+                          type="text"
+                          value={cameraName}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setStatus(prev => {
+                              const updated = { ...prev };
+                              const uw = { ...updated.wallets[wIdx] };
+                              const nfts = uw.nfts?.slice() ?? [];
+                              const un = { ...(nft ?? {}) };
+                              un.name = val;
+                              nfts[nIdx] = un;
+                              uw.nfts = nfts;
+                              updated.wallets[wIdx] = uw;
+                              return updated;
+                            });
+                          }}
+                          style={{ width: '6rem', marginBottom: '0.25rem' }}
+                        />
+                        <input
+                          type="text"
+                          value={tokenId}
+                          onChange={e => {
+                            const raw = e.target.value.trim();
+                            setStatus(prev => {
+                              const updated = { ...prev };
+                              const uw = { ...updated.wallets[wIdx] };
+                              const nfts = uw.nfts?.slice() ?? [];
+                              const un = { ...(nft ?? {}) };
+                              if (raw === '') {
+                                delete un.tokenId;
+                              } else {
+                                const asNum = /^[0-9]+$/.test(raw) ? Number(raw) : raw;
+                                un.tokenId = asNum;
+                              }
+                              delete un.tokeinid;
+                              nfts[nIdx] = un;
+                              uw.nfts = nfts;
+                              updated.wallets[wIdx] = uw;
+                              return updated;
+                            });
+                          }}
+                          style={{ width: '6rem' }}
+                        />
+                      </div>
+                    </div>
                   </td>
 
                   {/* Total Shots */}
-                  <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
+                  <td style={{ border: '1px solid #ccc', padding: '0.5rem', textAlign: 'right' }}>
                     <input
                       type="number"
                       value={lastShots ?? ''}
@@ -171,39 +197,15 @@ export default function WalletTable({ status, setStatus }) {
                       style={{ width: '5rem' }}
                     />
                     {shotDelta !== null && (
-                      <div style={{ fontSize: '0.8rem', marginTop: '0.25rem', color: shotDelta > 0 ? 'blue' : shotDelta < 0 ? 'red' : '#666' }}>
+                      <div style={{ fontSize: '0.8rem', color: shotDelta > 0 ? 'blue' : shotDelta < 0 ? 'red' : '#666' }}>
                         {shotDelta > 0 ? `+${shotDelta}枚` : shotDelta < 0 ? '⚠️ 不整合' : '変化なし'}
                       </div>
                     )}
                   </td>
 
-                  {/* Token ID */}
+                  {/* Last Checked */}
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
-                    <input
-                      type="text"
-                      value={tokenId ?? ''}
-                      onChange={e => {
-                        const raw = e.target.value.trim();
-                        setStatus(prev => {
-                          const updated = { ...prev };
-                          const uw = { ...updated.wallets[wIdx] };
-                          const nfts = uw.nfts?.slice() ?? [];
-                          const un = { ...(nft ?? {}) };
-                          if (raw === '') {
-                            delete un.tokenId;
-                          } else {
-                            const asNum = /^[0-9]+$/.test(raw) ? Number(raw) : raw;
-                            un.tokenId = asNum;
-                          }
-                          delete un.tokeinid;
-                          nfts[nIdx] = un;
-                          uw.nfts = nfts;
-                          updated.wallets[wIdx] = uw;
-                          return updated;
-                        });
-                      }}
-                      style={{ width: '10rem' }}
-                    />
+                    {w.lastChecked ? new Date(w.lastChecked).toLocaleString('ja-JP') : '-'}
                   </td>
 
                   {/* Delete Button */}
