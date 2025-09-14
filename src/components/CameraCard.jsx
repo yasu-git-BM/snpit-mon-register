@@ -1,71 +1,100 @@
 // mon_register/src/components/CameraCard.jsx
 import React, { useState } from 'react';
 import { updateStatus } from '../api/client';
+import { ethers } from 'ethers';
+
+// ★ 環境変数から設定を読み込む（.env に設定）
+const RPC_URL = process.env.REACT_APP_RPC_URL;
+const NFT_CONTRACT_ADDRESS = process.env.REACT_APP_NFT_CONTRACT;
+
+const ABI = [
+  "function ownerOf(uint256 tokenId) view returns (address)",
+  "function tokenURI(uint256 tokenId) view returns (string)"
+];
+
+// tokenId からウォレットアドレスと Total Shots を取得
+async function getOwnerAndShots(tokenId) {
+  const provider = new ethers.JsonRpcProvider(RPC_URL);
+  const contract = new ethers.Contract(NFT_CONTRACT_ADDRESS, ABI, provider);
+
+  const owner = await contract.ownerOf(tokenId);
+  let uri = await contract.tokenURI(tokenId);
+
+  if (uri.startsWith("ipfs://")) {
+    uri = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
+  }
+
+  const response = await fetch(uri);
+  if (!response.ok) throw new Error(`メタデータ取得失敗: ${response.status}`);
+  const metadata = await response.json();
+
+  const totalShots = metadata.attributes?.find(
+    attr => attr.trait_type === "Total Shots"
+  )?.value ?? 0;
+
+  return { owner, totalShots };
+}
 
 export default function CameraCard({ currentStatus, onStatusUpdated }) {
   const [walletName, setWalletName] = useState('');
-  const [walletAddress, setWalletAddress] = useState('');
   const [nftTokenId, setNftTokenId] = useState('');
   const [nftName, setNftName] = useState('');
 
   const handleRegister = async () => {
-    if (!walletAddress.trim() || !nftTokenId.trim()) {
-      alert('ウォレットアドレスとNFT Token IDは必須です');
+    if (!nftTokenId.trim()) {
+      alert('NFT Token IDは必須です');
       return;
     }
 
-    // 現在の status をコピー（wallets配列を保証）
-    const updatedStatus = currentStatus && typeof currentStatus === 'object'
-      ? { ...currentStatus }
-      : { wallets: [] };
-
-    if (!Array.isArray(updatedStatus.wallets)) {
-      updatedStatus.wallets = [];
-    }
-
-    // 新しいNFTオブジェクト
-    const newNft = {
-      tokenId: nftTokenId.trim(),
-      name: nftName.trim() || undefined,
-      lastTotalShots: 0
-    };
-
-    // 既存ウォレットを探す
-    const existingWallet = updatedStatus.wallets.find(
-      w => w['wallet address']?.toLowerCase() === walletAddress.trim().toLowerCase()
-    );
-
-    if (existingWallet) {
-      // 既存ウォレットにNFT追加
-      if (!Array.isArray(existingWallet.nfts)) {
-        existingWallet.nfts = [];
-      }
-      existingWallet.nfts.push(newNft);
-    } else {
-      // 新規ウォレット作成
-      updatedStatus.wallets.push({
-        'wallet name': walletName.trim() || undefined,
-        'wallet address': walletAddress.trim(),
-        maxShots: 16,
-        enableShots: 0,
-        lastChecked: new Date().toISOString(),
-        nfts: [newNft]
-      });
-    }
-
     try {
+      console.log(`🔍 Fetching owner & shots for tokenId=${nftTokenId}`);
+      const { owner, totalShots } = await getOwnerAndShots(nftTokenId.trim());
+      console.log(`✅ owner=${owner}, totalShots=${totalShots}`);
+
+      const updatedStatus = currentStatus && typeof currentStatus === 'object'
+        ? { ...currentStatus }
+        : { wallets: [] };
+
+      if (!Array.isArray(updatedStatus.wallets)) {
+        updatedStatus.wallets = [];
+      }
+
+      const newNft = {
+        tokenId: nftTokenId.trim(),
+        name: nftName.trim() || undefined,
+        lastTotalShots: totalShots
+      };
+
+      const existingWallet = updatedStatus.wallets.find(
+        w => w['wallet address']?.toLowerCase() === owner.toLowerCase()
+      );
+
+      if (existingWallet) {
+        if (!Array.isArray(existingWallet.nfts)) {
+          existingWallet.nfts = [];
+        }
+        existingWallet.nfts.push(newNft);
+      } else {
+        updatedStatus.wallets.push({
+          'wallet name': walletName.trim() || undefined,
+          'wallet address': owner,
+          maxShots: 16,
+          enableShots: 0,
+          lastChecked: new Date().toISOString(),
+          nfts: [newNft]
+        });
+      }
+
       console.log('📤 handleRegister → updateStatus with:', updatedStatus);
       const saved = await updateStatus(updatedStatus);
       console.log('✅ updateStatus result:', saved);
       onStatusUpdated?.(saved);
 
-      // 入力欄クリア
       setWalletName('');
-      setWalletAddress('');
       setNftTokenId('');
       setNftName('');
     } catch (err) {
-      console.error('❌ updateStatus error:', err);
+      console.error('❌ handleRegister error:', err);
       alert(`登録に失敗しました: ${err.message}`);
     }
   };
@@ -79,12 +108,6 @@ export default function CameraCard({ currentStatus, onStatusUpdated }) {
           placeholder="ウォレット名（任意）"
           value={walletName}
           onChange={e => setWalletName(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="ウォレットアドレス（必須）"
-          value={walletAddress}
-          onChange={e => setWalletAddress(e.target.value)}
         />
         <input
           type="text"
