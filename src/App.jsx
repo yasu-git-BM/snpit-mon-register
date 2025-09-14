@@ -11,7 +11,7 @@ function checkWalletInconsistency(wallet) {
   if (!isNaN(enable) && enable < 0) return 'Enable Shots が負の値';
   if (!isNaN(enable) && !isNaN(max) && enable > max) return 'Enable Shots が Max を超えている';
 
-  return null; // 問題なし
+  return null;
 }
 
 export default function App() {
@@ -39,26 +39,17 @@ export default function App() {
   };
 
   useEffect(() => {
-    console.log('🚀 useEffect start in App');
-
     fetchConfig()
-      .then(cfg => {
-        console.log('📥 fetchConfig result:', cfg);
-        setConfig(cfg);
-      })
-      .catch(err => {
-        console.error('❌ fetchConfig error:', err);
-        setError(err.message);
-      });
+      .then(cfg => setConfig(cfg))
+      .catch(err => setError(err.message));
 
     loadStatus();
   }, []);
 
   const handleUpdate = async () => {
     try {
-      console.log('🧪 Before updateStatus, current status:', status);
       setUpdating(true);
-      await updateStatus(status.wallets);
+      await updateStatus({ wallets: status.wallets }); // ✅ オブジェクト形式で送信
       await loadStatus(); // ✅ 再取得＋検証
       setError(null);
     } catch (err) {
@@ -70,9 +61,7 @@ export default function App() {
   };
 
   if (error?.includes('JSONフォーマットが不正')) {
-    return <div style={{ color: 'red' }}>
-      ⚠️ JSONフォーマットが不正です。編集内容を確認してください。
-    </div>;
+    return <div style={{ color: 'red' }}>⚠️ JSONフォーマットが不正です。編集内容を確認してください。</div>;
   }
 
   if (error) {
@@ -86,7 +75,6 @@ export default function App() {
       <h1 style={{ textAlign: 'center' }}>MON Register</h1>
 
       <CameraCard currentStatus={status} onStatusUpdated={setStatus} />
-
       <WalletTable status={status} setStatus={setStatus} />
 
       <button
@@ -110,9 +98,7 @@ export default function App() {
         <h2>Config</h2>
         <ul>
           {Object.entries(config).map(([k, v]) => (
-            <li key={k}>
-              <strong>{k}</strong>: {String(v)}
-            </li>
+            <li key={k}><strong>{k}</strong>: {String(v)}</li>
           ))}
         </ul>
       </section>
