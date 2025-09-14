@@ -1,38 +1,10 @@
-// mon_register/src/components/CameraCard.jsx
 import React, { useState } from 'react';
 import { updateStatus } from '../api/client';
-import { ethers } from 'ethers';
 
-// ★ 環境変数から設定を読み込む（.env に設定）
-const RPC_URL = process.env.REACT_APP_RPC_URL;
-const NFT_CONTRACT_ADDRESS = process.env.REACT_APP_NFT_CONTRACT;
-
-const ABI = [
-  "function ownerOf(uint256 tokenId) view returns (address)",
-  "function tokenURI(uint256 tokenId) view returns (string)"
-];
-
-// tokenId からウォレットアドレスと Total Shots を取得
 async function getOwnerAndShots(tokenId) {
-  const provider = new ethers.JsonRpcProvider(RPC_URL);
-  const contract = new ethers.Contract(NFT_CONTRACT_ADDRESS, ABI, provider);
-
-  const owner = await contract.ownerOf(tokenId);
-  let uri = await contract.tokenURI(tokenId);
-
-  if (uri.startsWith("ipfs://")) {
-    uri = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
-  }
-
-  const response = await fetch(uri);
-  if (!response.ok) throw new Error(`メタデータ取得失敗: ${response.status}`);
-  const metadata = await response.json();
-
-  const totalShots = metadata.attributes?.find(
-    attr => attr.trait_type === "Total Shots"
-  )?.value ?? 0;
-
-  return { owner, totalShots };
+  const res = await fetch(`/api/nft-info/${tokenId}`);
+  if (!res.ok) throw new Error(`NFT情報取得失敗: ${res.status}`);
+  return await res.json(); // { owner, totalShots }
 }
 
 export default function CameraCard({ currentStatus, onStatusUpdated }) {
@@ -85,9 +57,7 @@ export default function CameraCard({ currentStatus, onStatusUpdated }) {
         });
       }
 
-      console.log('📤 handleRegister → updateStatus with:', updatedStatus);
       const saved = await updateStatus(updatedStatus);
-      console.log('✅ updateStatus result:', saved);
       onStatusUpdated?.(saved);
 
       setWalletName('');
