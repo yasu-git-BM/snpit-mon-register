@@ -16,8 +16,6 @@ function getCameraName(nft) {
 }
 
 export default function WalletTable({ status, setStatus }) {
-  console.log('📦 WalletTable received status:', status);
-
   if (!status?.wallets?.length) return null;
 
   return (
@@ -31,24 +29,16 @@ export default function WalletTable({ status, setStatus }) {
       }}>
         <thead>
           <tr style={{ backgroundColor: '#f5f5f5' }}>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Wallet Name</th>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Wallet Address</th>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Camera Name</th>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Max Shots</th>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Enable Shots</th>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Last Checked</th>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Total Shots</th>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Token ID</th>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>🗑</th>
+            {['Wallet Name', 'Wallet Address', 'Camera Name', 'Max Shots', 'Enable Shots', 'Last Checked', 'Total Shots', 'Token ID', '🗑'].map(label => (
+              <th key={label} style={{ border: '1px solid #ccc', padding: '0.5rem' }}>{label}</th>
+            ))}
           </tr>
         </thead>
         <tbody>
           {status.wallets.map((w, wIdx) =>
             (w.nfts?.length ? w.nfts : [null]).map((nft, nIdx) => {
-              console.log('🎯 Rendering row:', w, nft);
-
-              const tokenId = getTokenId(nft);
-              const cameraName = getCameraName(nft);
+              const tokenId = nft?.tokenId ?? nft?.tokeinid ?? null;
+              const cameraName = nft?.name ?? '';
 
               return (
                 <tr key={`${wIdx}-${nIdx}`} style={{ backgroundColor: '#fff' }}>
@@ -132,7 +122,27 @@ export default function WalletTable({ status, setStatus }) {
                     {w.lastChecked ? new Date(w.lastChecked).toLocaleString('ja-JP') : '-'}
                   </td>
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
-                    {nft?.lastTotalShots ?? 0}
+                    <input
+                      type="number"
+                      value={nft?.lastTotalShots ?? ''}
+                      min="0"
+                      onChange={e => {
+                        const raw = e.target.value;
+                        const val = raw === '' ? null : Math.max(0, parseInt(raw, 10) || 0);
+                        setStatus(prev => {
+                          const updated = { ...prev };
+                          const uw = { ...updated.wallets[wIdx] };
+                          const nfts = uw.nfts?.slice() ?? [];
+                          const un = { ...(nft ?? {}) };
+                          un.lastTotalShots = val;
+                          nfts[nIdx] = un;
+                          uw.nfts = nfts;
+                          updated.wallets[wIdx] = uw;
+                          return updated;
+                        });
+                      }}
+                      style={{ width: '5rem' }}
+                    />
                   </td>
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
                     <input
