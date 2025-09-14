@@ -1,30 +1,47 @@
-// mon_register/src/api/client.js
-export const API_BASE = import.meta.env.VITE_API_BASE;
+const API_BASE = import.meta.env.VITE_API_BASE;
 
-// 設定取得
+// Config取得
 export async function fetchConfig() {
-  const res = await fetch(`${API_BASE}/config.json`);
-  if (!res.ok) throw new Error(`fetchConfig failed: ${res.status}`);
-  return res.json();
-}
-
-// ステータス取得（POST /api/status）
-export async function fetchStatus() {
-  const res = await fetch(`${API_BASE}/api/status`, {
-    method:  'POST',
+  console.log('🌐 fetchConfig start');
+  const res = await fetch(`${API_BASE}/api/config`, {
+    method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   });
-  if (!res.ok) throw new Error(`fetchStatus failed: ${res.status}`);
-  return res.json();
+  if (!res.ok) {
+    throw new Error(`fetchConfig failed: ${res.status}`);
+  }
+  const data = await res.json();
+  console.log('📥 fetchConfig result:', data);
+  return data;
 }
 
-// ステータス更新（POST /api/update/status）→ 更新後データ返却
-export async function updateStatus(newData) {
-  const res = await fetch(`${API_BASE}/api/update/status`, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(newData)
+// Status取得（GETに変更済み）
+export async function fetchStatus() {
+  console.log('🌐 fetchStatus start');
+  const res = await fetch(`${API_BASE}/api/status`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
   });
-  if (!res.ok) throw new Error(`updateStatus failed: ${res.status}`);
-  return res.json();
+  if (!res.ok) {
+    throw new Error(`fetchStatus failed: ${res.status}`);
+  }
+  const data = await res.json();
+  console.log('📥 fetchStatus result:', data);
+  return data;
+}
+
+// Status更新（POSTは必要なときだけ）
+export async function updateStatus(status) {
+  console.log('🌐 updateStatus start', status);
+  const res = await fetch(`${API_BASE}/api/status`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(status)
+  });
+  if (!res.ok) {
+    throw new Error(`updateStatus failed: ${res.status}`);
+  }
+  const data = await res.json();
+  console.log('📥 updateStatus result:', data);
+  return data;
 }

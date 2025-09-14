@@ -1,4 +1,3 @@
-// mon_register/src/App.jsx
 import React, { useEffect, useState } from 'react';
 import { fetchConfig, fetchStatus, updateStatus } from './api/client';
 import CameraCard from './components/CameraCard';
@@ -21,6 +20,7 @@ export default function App() {
         setError(err.message);
       });
 
+    // 起動時はGETに変更したfetchStatusを呼び出す
     fetchStatus()
       .then(st => {
         console.log('📥 fetchStatus result:', st);
