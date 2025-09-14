@@ -66,6 +66,7 @@ export default function App() {
     <div style={{ maxWidth: 900, margin: '2rem auto', fontFamily: 'sans-serif' }}>
       <h1 style={{ textAlign: 'center' }}>MON Register</h1>
 
+      {/* ✅ CameraCard を先に表示 */}
       <CameraCard currentStatus={status} onStatusUpdated={setStatus} />
 
       <WalletTable status={status} setStatus={setStatus} />
