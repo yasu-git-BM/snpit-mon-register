@@ -12,27 +12,28 @@ export default function CameraCard({ currentStatus, onStatusUpdated }) {
       return;
     }
 
-    const newWallet = {
-      'wallet name': newWalletName,
-      'wallet address': newWalletAddress,
-      maxShots: null,
-      enableShots: null,
-      nfts: [
-        {
-          tokenId: /^[0-9]+$/.test(newTokenId) ? Number(newTokenId) : newTokenId,
-          name: newCameraName
-        }
-      ]
+    const newCamera = {
+      tokenId: /^[0-9]+$/.test(newTokenId) ? Number(newTokenId) : newTokenId,
+      name: newCameraName
     };
 
-    const updated = {
-      ...currentStatus,
-      wallets: [...(currentStatus.wallets ?? []), newWallet]
-    };
+    const wallets = [...(currentStatus.wallets ?? [])];
+    const existing = wallets.find(w => w['wallet address'] === newWalletAddress);
 
-    onStatusUpdated(updated);
+    if (existing) {
+      existing.nfts = [...(existing.nfts ?? []), newCamera];
+    } else {
+      wallets.push({
+        'wallet name': newWalletName,
+        'wallet address': newWalletAddress,
+        maxShots: null,
+        enableShots: null,
+        nfts: [newCamera]
+      });
+    }
 
-    // 入力フィールドをクリア
+    onStatusUpdated({ ...currentStatus, wallets });
+
     setNewWalletName('');
     setNewWalletAddress('');
     setNewCameraName('');
