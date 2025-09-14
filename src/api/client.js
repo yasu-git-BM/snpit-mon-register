@@ -1,47 +1,25 @@
-const API_BASE = import.meta.env.VITE_API_BASE;
+const API_BASE = 'https://snpit-line-bot.onrender.com';
 
-// Config取得
 export async function fetchConfig() {
-  console.log('🌐 fetchConfig start');
-  const res = await fetch(`${API_BASE}/api/config`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' }
-  });
-  if (!res.ok) {
-    throw new Error(`fetchConfig failed: ${res.status}`);
-  }
-  const data = await res.json();
-  console.log('📥 fetchConfig result:', data);
-  return data;
+  const res = await fetch(`${API_BASE}/api/config`);
+  if (!res.ok) throw new Error(`Config取得失敗: ${res.status}`);
+  return await res.json();
 }
 
-// Status取得（GETに変更済み）
 export async function fetchStatus() {
-  console.log('🌐 fetchStatus start');
-  const res = await fetch(`${API_BASE}/api/status`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' }
-  });
-  if (!res.ok) {
-    throw new Error(`fetchStatus failed: ${res.status}`);
-  }
-  const data = await res.json();
-  console.log('📥 fetchStatus result:', data);
-  return data;
+  const res = await fetch(`${API_BASE}/api/status`);
+  if (!res.ok) throw new Error(`Status取得失敗: ${res.status}`);
+  return await res.json();
 }
 
-// Status更新（POSTは必要なときだけ）
-export async function updateStatus(status) {
-  console.log('🌐 updateStatus start', status);
+export async function updateStatus(data) {
   const res = await fetch(`${API_BASE}/api/status`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(status)
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
   });
-  if (!res.ok) {
-    throw new Error(`updateStatus failed: ${res.status}`);
-  }
-  const data = await res.json();
-  console.log('📥 updateStatus result:', data);
-  return data;
+  if (!res.ok) throw new Error(`Status更新失敗: ${res.status}`);
+  return await res.json();
 }
