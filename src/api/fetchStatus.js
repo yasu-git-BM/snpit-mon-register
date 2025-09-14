@@ -1,6 +1,6 @@
 export async function fetchStatus() {
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/status`, {
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/status`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });

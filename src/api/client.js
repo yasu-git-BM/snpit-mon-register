@@ -1,4 +1,4 @@
-const API_BASE = 'https://snpit-line-bot.onrender.com';
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export async function fetchConfig() {
   const res = await fetch(`${API_BASE}/api/config`);
