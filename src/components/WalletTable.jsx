@@ -20,9 +20,15 @@ export default function WalletTable({ status, setStatus }) {
       }}>
         <thead>
           <tr style={{ backgroundColor: '#f5f5f5' }}>
-            {['Wallet', 'Max Shots', 'Enable Shots', 'Camera / Token ID', 'Total Shots', 'Last Checked', '🗑'].map(label => (
-              <th key={label} style={{ border: '1px solid #ccc', padding: '0.5rem' }}>{label}</th>
-            ))}
+            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Wallet</th>
+            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Max Shots</th>
+            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Enable Shots</th>
+            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
+              Camera<br />Token ID
+            </th>
+            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Total Shots</th>
+            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Last Checked</th>
+            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>🗑</th>
           </tr>
         </thead>
         <tbody>
@@ -85,93 +91,6 @@ export default function WalletTable({ status, setStatus }) {
                     />
                   </td>
 
-                  {/* Enable Shots */}
-                  <td style={{ border: '1px solid #ccc', padding: '0.5rem', textAlign: 'right' }}>
-                    <input
-                      type="number"
-                      value={enableShots ?? ''}
-                      min="0"
-                      onChange={e => {
-                        const val = e.target.value === '' ? null : Math.max(0, parseInt(e.target.value, 10) || 0);
-                        setStatus(prev => {
-                          const updated = { ...prev };
-                          updated.wallets[wIdx].enableShots = val;
-                          return updated;
-                        });
-                      }}
-                      style={{ width: '5rem', backgroundColor: enableBg }}
-                    />
-                    {enableShots === null && (
-                      <div style={{ color: 'red', fontSize: '0.8rem' }}>⚠️ 不整合</div>
-                    )}
-                    {enableShots !== null && maxShots !== null && enableShots < maxShots && (
-                      <div style={{ color: '#996600', fontSize: '0.8rem' }}>
-                        残り {enableShots} / {maxShots}
-                      </div>
-                    )}
-                    {enableShots === maxShots && (
-                      <div style={{ color: 'green', fontSize: '0.8rem' }}>満タン</div>
-                    )}
-                  </td>
-
-                {/* Camera Name + Token ID + Thumbnail */}
-                <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-                    {imageUrl && (
-                      <img
-                        src={imageUrl}
-                        alt="NFT"
-                        style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }}
-                      />
-                    )}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                      <input
-                        type="text"
-                        value={cameraName}
-                        onChange={e => {
-                          const val = e.target.value;
-                          setStatus(prev => {
-                            const updated = { ...prev };
-                            const uw = { ...updated.wallets[wIdx] };
-                            const nfts = uw.nfts?.slice() ?? [];
-                            const un = { ...(nft ?? {}) };
-                            un.name = val;
-                            nfts[nIdx] = un;
-                            uw.nfts = nfts;
-                            updated.wallets[wIdx] = uw;
-                            return updated;
-                          });
-                        }}
-                        style={{ width: '6rem' }}
-                      />
-                      <input
-                        type="text"
-                        value={tokenId}
-                        onChange={e => {
-                          const raw = e.target.value.trim();
-                          setStatus(prev => {
-                            const updated = { ...prev };
-                            const uw = { ...updated.wallets[wIdx] };
-                            const nfts = uw.nfts?.slice() ?? [];
-                            const un = { ...(nft ?? {}) };
-                            if (raw === '') {
-                              delete un.tokenId;
-                            } else {
-                              const asNum = /^[0-9]+$/.test(raw) ? Number(raw) : raw;
-                              un.tokenId = asNum;
-                            }
-                            delete un.tokeinid;
-                            nfts[nIdx] = un;
-                            uw.nfts = nfts;
-                            updated.wallets[wIdx] = uw;
-                            return updated;
-                          });
-                        }}
-                        style={{ width: '6rem' }}
-                      />
-                    </div>
-                  </div>
-                </td>
                   {/* Total Shots */}
                   <td style={{ border: '1px solid #ccc', padding: '0.5rem', textAlign: 'right' }}>
                     <input
