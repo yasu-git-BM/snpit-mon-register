@@ -35,7 +35,7 @@ export default function WalletTable({ status, setStatus }) {
   return (
     <section style={{ marginBottom: '1.5rem' }}>
       <h2>Status</h2>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #ccc' }}>
         <thead>
           <tr>
             <th>Wallet Name</th>
@@ -52,6 +52,8 @@ export default function WalletTable({ status, setStatus }) {
         <tbody>
           {status.wallets.map((w, wIdx) =>
             (w.nfts?.length ? w.nfts : [null]).map((nft, nIdx) => {
+              console.log('🎯 Rendering row:', w, nft); // ✅ デバッグログ追加
+
               const tokenId = getTokenId(nft);
               const cameraName = getCameraName(nft);
               const inconsistent = isInconsistent(w);
