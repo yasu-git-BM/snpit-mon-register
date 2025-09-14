@@ -41,15 +41,20 @@ export default function App() {
   const verifyStatus = rawWallets => {
     return rawWallets.map(w => {
       const reason = checkWalletInconsistency(w);
-      return { ...w, inconsistent: !!reason, inconsistentReason: reason };
+      return {
+        ...w,
+        inconsistent: !!reason,
+        inconsistentReason: reason,
+        nfts: w.nfts // ✅ 明示的に保持して lastTotalShots を壊さない
+      };
     });
   };
 
   const loadStatus = async () => {
     try {
-      const raw = await fetchStatus();
-      const verified = verifyStatus(raw);
-      setStatus({ wallets: verified });
+      const raw = await fetchStatus();         // ✅ Botが更新済みの状態を返す
+      const verified = verifyStatus(raw.wallets ?? []);
+      setStatus({ wallets: verified });        // ✅ 最新状態を反映
     } catch (err) {
       console.error('❌ fetchStatus error:', err);
       setError(err.message);
@@ -61,15 +66,15 @@ export default function App() {
       .then(cfg => setConfig(cfg))
       .catch(err => setError(err.message));
 
-    loadStatus();
+    loadStatus(); // ✅ 起動時にBotから最新状態を取得
   }, []);
 
   const handleUpdate = async () => {
     try {
       setUpdating(true);
-      const sanitized = sanitizeStatus(status); // ✅ 型変換済みデータ
-      await updateStatus(sanitized);            // ✅ Botに送信
-      await loadStatus();                       // ✅ 再取得＋検証
+      const sanitized = sanitizeStatus(status);
+      await updateStatus(sanitized);
+      await loadStatus(); // ✅ 更新後に再取得
       setError(null);
     } catch (err) {
       console.error('❌ updateStatus error:', err);
