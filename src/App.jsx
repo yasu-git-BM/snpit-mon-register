@@ -14,6 +14,21 @@ function checkWalletInconsistency(wallet) {
   return null;
 }
 
+function sanitizeStatus(raw) {
+  const wallets = raw.wallets.map(w => {
+    const nfts = (w.nfts ?? []).map(nft => {
+      const copy = { ...nft };
+      if (typeof copy.lastTotalShots === 'string') {
+        const parsed = parseInt(copy.lastTotalShots, 10);
+        copy.lastTotalShots = isNaN(parsed) ? 0 : parsed;
+      }
+      return copy;
+    });
+    return { ...w, nfts };
+  });
+  return { wallets };
+}
+
 export default function App() {
   const [config, setConfig] = useState(null);
   const [status, setStatus] = useState({ wallets: [] });
@@ -49,8 +64,9 @@ export default function App() {
   const handleUpdate = async () => {
     try {
       setUpdating(true);
-      await updateStatus({ wallets: status.wallets }); // ✅ オブジェクト形式で送信
-      await loadStatus(); // ✅ 再取得＋検証
+      const sanitized = sanitizeStatus(status); // ✅ 型変換済みデータ
+      await updateStatus(sanitized);            // ✅ Botに送信
+      await loadStatus();                       // ✅ 再取得＋検証
       setError(null);
     } catch (err) {
       console.error('❌ updateStatus error:', err);
