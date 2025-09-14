@@ -261,6 +261,67 @@ export default function App() {
                       placeholder="-"
                     />
                   </td>
+                    {/* NFT Token ID（編集可, NFT単位: tokenId; tokeinid 互換） */}
+                    <td style={{ border: '1px solid #ccc', padding: '0.5rem', fontFamily: 'monospace' }}>
+                      <input
+                        type="text"
+                        value={tokenId ?? ''}
+                        onChange={e => {
+                          const raw = e.target.value.trim();
+                          setStatus(prev => {
+                            const updated = { ...prev };
+                            updated.wallets = [...updated.wallets];
+                            const uw = { ...updated.wallets[wIdx] };
+                            const nfts = uw.nfts && uw.nfts.length ? [...uw.nfts] : [];
+                            const un = { ...(nft ?? {}) };
+                            // 正規化: tokenId に書き、古い tokeinid は消す
+                            if (raw === '') {
+                              delete un.tokenId;
+                            } else {
+                              const asNum = /^[0-9]+$/.test(raw) ? Number(raw) : raw;
+                              un.tokenId = asNum;
+                            }
+                            if ('tokeinid' in un) delete un.tokeinid;
+
+                            if (nfts.length) {
+                              nfts[nIdx] = un;
+                            } else {
+                              nfts.push(un);
+                            }
+                            uw.nfts = nfts;
+                            updated.wallets[wIdx] = uw;
+                            return updated;
+                          });
+                        }}
+                        style={{ width: '10rem' }}
+                        placeholder="-"
+                      />
+                    </td>
+
+                    {/* 削除ボタン列 */}
+                    <td style={{ border: '1px solid #ccc', padding: '0.5rem', textAlign: 'center' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm(`このNFTを削除しますか？\nWallet: ${w['wallet name'] ?? ''}\nToken ID: ${tokenId ?? '-'}`)) {
+                            setStatus(prev => {
+                              const updated = { ...prev };
+                              updated.wallets = [...updated.wallets];
+                              const uw = { ...updated.wallets[wIdx] };
+                              const nfts = uw.nfts && uw.nfts.length ? [...uw.nfts] : [];
+                              nfts.splice(nIdx, 1);
+                              uw.nfts = nfts;
+                              updated.wallets[wIdx] = uw;
+                              return updated;
+                            });
+                          }
+                        }}
+                        style={{ cursor: 'pointer', color: 'red', fontWeight: 'bold' }}
+                        title="このNFTを削除"
+                      >
+                        🗑
+                      </button>
+                    </td>
                 </tr>
               );
             })
