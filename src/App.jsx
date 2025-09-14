@@ -97,6 +97,20 @@ export default function App() {
           ))}
         </ul>
       </section>
+
+      {/* ✅ デバッグ表示：現在の status を確認 */}
+      <section style={{ marginTop: '2rem' }}>
+        <h2>Debug: Current Status</h2>
+        <pre style={{
+          backgroundColor: '#f0f0f0',
+          padding: '1rem',
+          fontSize: '0.8rem',
+          overflowX: 'auto',
+          border: '1px solid #ccc'
+        }}>
+          {JSON.stringify(status, null, 2)}
+        </pre>
+      </section>
     </div>
   );
 }
