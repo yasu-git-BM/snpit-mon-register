@@ -41,6 +41,7 @@ export default function App() {
       const refreshed = await fetchStatus();
       console.log('✅ updateStatus + reload result:', refreshed);
       setStatus(refreshed);
+      setError(null);
     } catch (err) {
       console.error('❌ updateStatus error:', err);
       setError(err.message);
@@ -49,7 +50,16 @@ export default function App() {
     }
   };
 
-  if (error) return <div style={{ color: 'red' }}>Error: {error}</div>;
+  if (error?.includes('JSONフォーマットが不正')) {
+    return <div style={{ color: 'red' }}>
+      ⚠️ JSONフォーマットが不正です。編集内容を確認してください。
+    </div>;
+  }
+
+  if (error) {
+    return <div style={{ color: 'red' }}>Error: {error}</div>;
+  }
+
   if (!config || !status) return <div>Loading…</div>;
 
   return (
