@@ -14,7 +14,7 @@ export default function WalletTable({ status, setStatus, onReload }) {
     try {
       await updateStatus({ wallets: status.wallets }, true); // forceOverride
       if (onReload) onReload();
-      setSaveMessage('✅ 保存しました');
+      alert('✅ 保存しました');
     } catch (err) {
       console.error('❌ 保存エラー:', err);
       alert('保存に失敗しました');
