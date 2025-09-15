@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { updateStatus } from '../api/updateStatus';
 
 function formatAddress(addr) {
@@ -8,9 +8,13 @@ function formatAddress(addr) {
 }
 
 export default function WalletTable({ status, setStatus, onReload }) {
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+
   if (!status?.wallets?.length) return null;
 
   const handleSave = async () => {
+    setIsSaving(true);
     try {
       await updateStatus({ wallets: status.wallets }, true); // forceOverride
       if (onReload) onReload();
@@ -18,12 +22,41 @@ export default function WalletTable({ status, setStatus, onReload }) {
     } catch (err) {
       console.error('❌ 保存エラー:', err);
       alert('保存に失敗しました');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCorrection = async (wallet) => {
+    const input = prompt('補正値を入力してください', wallet.enableShots ?? '');
+    if (input === null) return;
+
+    const newShots = input === '' ? null : Math.max(0, parseInt(input, 10) || 0);
+    const patched = {
+      ...wallet,
+      enableShots: newShots,
+      manualOverride: true
+    };
+
+    setIsUpdating(true);
+    try {
+      await updateStatus({ wallets: [patched] }, true); // forceOverride
+      if (onReload) onReload();
+      alert(`✅ 補正しました (${wallet['wallet name']})`);
+    } catch (err) {
+      console.error('❌ 補正エラー:', err);
+      alert('補正に失敗しました');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   return (
     <section style={{ marginBottom: '1.5rem' }}>
       <h2>Status</h2>
+      {(isSaving || isUpdating) && (
+        <div style={{ marginBottom: '0.5rem', color: '#666' }}>⏳ 処理中...</div>
+      )}
       <table style={{
         width: '100%',
         borderCollapse: 'collapse',
@@ -39,6 +72,7 @@ export default function WalletTable({ status, setStatus, onReload }) {
             <th>Total Shots</th>
             <th>Last Checked</th>
             <th>🗑</th>
+            <th>補正</th>
           </tr>
         </thead>
         <tbody>
@@ -253,6 +287,27 @@ export default function WalletTable({ status, setStatus, onReload }) {
                       🗑
                     </button>
                   </td>
+
+                  {/* Manual Correction Button */}
+                  <td style={{ textAlign: 'center' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleCorrection(w)}
+                      disabled={isUpdating}
+                      style={{
+                        backgroundColor: '#ffcc00',
+                        color: '#333',
+                        border: 'none',
+                        borderRadius: '4px',
+                        padding: '4px 8px',
+                        cursor: isUpdating ? 'not-allowed' : 'pointer',
+                        fontWeight: 'bold'
+                      }}
+                      title="このウォレットの補正を実行"
+                    >
+                      補正
+                    </button>
+                  </td>
                 </tr>
               );
             })
@@ -265,13 +320,14 @@ export default function WalletTable({ status, setStatus, onReload }) {
         <button
           type="button"
           onClick={handleSave}
+          disabled={isSaving}
           style={{
-            backgroundColor: '#0066ff',
+            backgroundColor: isSaving ? '#ccc' : '#0066ff',
             color: '#fff',
             border: 'none',
             borderRadius: '4px',
             padding: '8px 16px',
-            cursor: 'pointer',
+            cursor: isSaving ? 'not-allowed' : 'pointer',
             fontWeight: 'bold'
           }}
         >
