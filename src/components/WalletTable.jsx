@@ -7,7 +7,11 @@ function formatAddress(addr) {
   return `${addr.slice(0, 5)}...${addr.slice(-5)}`;
 }
 
-export default function WalletTable({ status, setStatus, onReload }) {
+export default function WalletTable({ status, setStatus, onReload, isLoading }) {
+  if (isLoading) {
+    return <div style={{ padding: '1rem', color: '#666' }}>⏳ 読み込み中...</div>;
+  }
+  
   const [isSaving, setIsSaving] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -27,29 +31,36 @@ export default function WalletTable({ status, setStatus, onReload }) {
     }
   };
 
-  const handleCorrection = async (wallet) => {
-    const input = prompt('補正値を入力してください', wallet.enableShots ?? '');
-    if (input === null) return;
+const handleCorrection = async (wallet) => {
+  const input = prompt('補正値を入力してください', wallet.enableShots ?? '');
+  if (input === null) return;
 
-    const newShots = input === '' ? null : Math.max(0, parseInt(input, 10) || 0);
-    const patched = {
-      ...wallet,
-      enableShots: newShots,
-      manualOverride: true
-    };
+  const newShots = input === '' ? null : Math.max(0, parseInt(input, 10) || 0);
 
-    setIsUpdating(true);
-    try {
-      await updateStatus({ wallets: [patched] }, true); // forceOverride
-      if (onReload) onReload();
-      alert(`✅ 補正しました (${wallet['wallet name']})`);
-    } catch (err) {
-      console.error('❌ 補正エラー:', err);
-      alert('補正に失敗しました');
-    } finally {
-      setIsUpdating(false);
+  // 全体をコピーして補正対象だけ更新
+  const updatedWallets = status.wallets.map(w => {
+    if (w['wallet address'] === wallet['wallet address']) {
+      return {
+        ...w,
+        enableShots: newShots,
+        manualOverride: true
+      };
     }
-  };
+    return w;
+  });
+
+  setIsUpdating(true);
+  try {
+    await updateStatus({ wallets: updatedWallets }, true); // ← 全体を保存
+    if (onReload) onReload();
+    alert(`✅ 補正しました (${wallet['wallet name']})`);
+  } catch (err) {
+    console.error('❌ 補正エラー:', err);
+    alert('補正に失敗しました');
+  } finally {
+    setIsUpdating(false);
+  }
+};
 
   return (
     <section style={{ marginBottom: '1.5rem' }}>
