@@ -1,4 +1,5 @@
 import React from 'react';
+import { updateStatus } from '../api/updateStatus';
 
 function formatAddress(addr) {
   if (!addr || typeof addr !== 'string') return '-';
@@ -6,8 +7,18 @@ function formatAddress(addr) {
   return `${addr.slice(0, 5)}...${addr.slice(-5)}`;
 }
 
-export default function WalletTable({ status, setStatus }) {
+export default function WalletTable({ status, setStatus, onReload }) {
   if (!status?.wallets?.length) return null;
+
+  const handleSave = async () => {
+    try {
+      await updateStatus({ wallets: status.wallets }, true); // forceOverride
+      if (onReload) onReload();
+    } catch (err) {
+      console.error('❌ 保存エラー:', err);
+      alert('保存に失敗しました');
+    }
+  };
 
   return (
     <section style={{ marginBottom: '1.5rem' }}>
@@ -20,13 +31,13 @@ export default function WalletTable({ status, setStatus }) {
       }}>
         <thead>
           <tr style={{ backgroundColor: '#f5f5f5' }}>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Wallet</th>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Max Shots</th>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Enable Shots</th>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Camera<br />Token ID</th>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Total Shots</th>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>Last Checked</th>
-            <th style={{ border: '1px solid #ccc', padding: '0.5rem' }}>🗑</th>
+            <th>Wallet</th>
+            <th>Max Shots</th>
+            <th>Enable Shots</th>
+            <th>Camera<br />Token ID</th>
+            <th>Total Shots</th>
+            <th>Last Checked</th>
+            <th>🗑</th>
           </tr>
         </thead>
         <tbody>
@@ -52,7 +63,7 @@ export default function WalletTable({ status, setStatus }) {
               return (
                 <tr key={`${wIdx}-${nIdx}`} style={{ backgroundColor: '#fff' }}>
                   {/* Wallet Name + Address */}
-                  <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
+                  <td>
                     <input
                       type="text"
                       value={w['wallet name'] ?? ''}
@@ -72,7 +83,7 @@ export default function WalletTable({ status, setStatus }) {
                   </td>
 
                   {/* Max Shots */}
-                  <td style={{ border: '1px solid #ccc', padding: '0.5rem', textAlign: 'right' }}>
+                  <td style={{ textAlign: 'right' }}>
                     <input
                       type="number"
                       value={maxShots ?? ''}
@@ -90,7 +101,7 @@ export default function WalletTable({ status, setStatus }) {
                   </td>
 
                   {/* Enable Shots */}
-                  <td style={{ border: '1px solid #ccc', padding: '0.5rem', textAlign: 'right' }}>
+                  <td style={{ textAlign: 'right' }}>
                     <input
                       type="number"
                       value={enableShots ?? ''}
@@ -119,7 +130,7 @@ export default function WalletTable({ status, setStatus }) {
                   </td>
 
                   {/* Camera Name + Token ID + Thumbnail */}
-                  <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
+                  <td>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
                       {imageUrl && (
                         <img
@@ -178,7 +189,7 @@ export default function WalletTable({ status, setStatus }) {
                   </td>
 
                   {/* Total Shots */}
-                  <td style={{ border: '1px solid #ccc', padding: '0.5rem', textAlign: 'right' }}>
+                  <td style={{ textAlign: 'right' }}>
                     <input
                       type="number"
                       value={lastShots ?? ''}
@@ -208,12 +219,12 @@ export default function WalletTable({ status, setStatus }) {
                   </td>
 
                   {/* Last Checked */}
-                  <td style={{ border: '1px solid #ccc', padding: '0.5rem' }}>
+                  <td>
                     {w.lastChecked ? new Date(w.lastChecked).toLocaleString('ja-JP') : '-'}
                   </td>
 
                   {/* Delete Button */}
-                  <td style={{ border: '1px solid #ccc', padding: '0.5rem', textAlign: 'center' }}>
+                  <td style={{ textAlign: 'center' }}>
                     <button
                       type="button"
                       onClick={() => {
@@ -229,7 +240,13 @@ export default function WalletTable({ status, setStatus }) {
                           });
                         }
                       }}
-                      style={{ cursor: 'pointer', color: 'red', fontWeight: 'bold' }}
+                      style={{
+                        cursor: 'pointer',
+                        color: 'red',
+                        fontWeight: 'bold',
+                        background: 'none',
+                        border: 'none'
+                      }}
                       title="このNFTを削除"
                     >
                       🗑
@@ -241,6 +258,25 @@ export default function WalletTable({ status, setStatus }) {
           )}
         </tbody>
       </table>
+
+      {/* Save Button */}
+      <div style={{ marginTop: '1rem', textAlign: 'right' }}>
+        <button
+          type="button"
+          onClick={handleSave}
+          style={{
+            backgroundColor: '#0066ff',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '4px',
+            padding: '8px 16px',
+            cursor: 'pointer',
+            fontWeight: 'bold'
+          }}
+        >
+          保存
+        </button>
+      </div>
     </section>
   );
 }
