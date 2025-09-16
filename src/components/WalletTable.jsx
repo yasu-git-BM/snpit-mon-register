@@ -46,7 +46,10 @@ const handleCorrection = async (wallet) => {
         manualOverride: true
       };
     }
-    return w;
+    return {
+      ...w,
+      manualOverride: false // ← 補正対象以外は false にリセット
+    };
   });
 
   setIsUpdating(true);
