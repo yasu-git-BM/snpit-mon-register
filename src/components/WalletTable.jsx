@@ -75,7 +75,7 @@ const handleCorrection = async (wallet) => {
         backgroundColor: '#fff'
       }}>
         <thead>
-          <tr style={{ backgroundColor: '#f5f5f5' }}>
+          <tr style={{ backgroundColor: '#f5f5f5' , borderBottom: '1px solid #ccc' }}>
             <th>Wallet</th>
             <th>Max Shots</th>
             <th>Enable Shots</th>
@@ -228,7 +228,7 @@ const handleCorrection = async (wallet) => {
                               return updated;
                             });
                           }}
-                          style={{ width: '6rem' }}
+                          style={{ width: '8rem' }}
                         />
                       </div>
                     </div>
@@ -289,6 +289,8 @@ const handleCorrection = async (wallet) => {
                       style={{
                         cursor: 'pointer',
                         color: 'red',
+                        justifyContent: 'center',
+                        alignItems: 'center',
                         fontWeight: 'bold',
                         background: 'none',
                         border: 'none'
@@ -308,6 +310,8 @@ const handleCorrection = async (wallet) => {
                       style={{
                         backgroundColor: '#ffcc00',
                         color: '#333',
+                        justifyContent: 'center',
+                        alignItems: 'center',
                         border: 'none',
                         borderRadius: '4px',
                         padding: '4px 8px',
