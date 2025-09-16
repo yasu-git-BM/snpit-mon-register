@@ -20,7 +20,7 @@ export default function WalletTable({ status, setStatus, onReload, isLoading }) 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await updateStatus({ wallets: status.wallets }, false); // forceOverride
+      await updateStatus({ wallets: status.wallets }, true); // forceOverride
       if (onReload) onReload();
       alert('✅ 保存しました');
     } catch (err) {
@@ -51,7 +51,7 @@ const handleCorrection = async (wallet) => {
 
   setIsUpdating(true);
   try {
-    await updateStatus({ wallets: updatedWallets }, false); // ← 全体を保存
+    await updateStatus({ wallets: updatedWallets }, true); // ← 全体を保存
     if (onReload) onReload();
     alert(`✅ 補正しました (${wallet['wallet name']})`);
   } catch (err) {
